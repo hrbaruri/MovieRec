@@ -1,8 +1,9 @@
-
 # Movie Recommender System
 
 ## Overview
-This Movie Recommender System provides movie recommendations based on the content of the movies. The system uses a content-based filtering approach to recommend movies by analyzing their metadata, such as genres, keywords, cast, and crew. The project leverages machine learning techniques like **Cosine Similarity** to measure the similarity between movies and generate recommendations.
+This Movie Recommender System provides movie recommendations based on the content of the movies using a **content-based filtering** approach. It analyzes movie metadata such as the overview, genres, keywords, cast, and crew. 
+
+The project initially used a basic bag-of-words model (`CountVectorizer`), but has now been significantly improved using a **pre-trained Sentence-BERT model** to extract **contextual semantic embeddings**. These embeddings allow the system to better understand the meaning behind movie descriptions, resulting in more accurate and meaningful recommendations.
 
 ## Dataset
 The dataset used in this project is the **TMDb Movie Metadata** dataset, which contains information about 5,000 movies, including attributes like genres, keywords, cast, crew, and more. The dataset can be downloaded from Kaggle:
@@ -13,58 +14,25 @@ The dataset used in this project is the **TMDb Movie Metadata** dataset, which c
 
 1. **Data Collection**: 
    - The project uses two datasets: `tmdb_5000_movies.csv` (movie details) and `tmdb_5000_credits.csv` (cast and crew information).
-   
+
 2. **Data Preprocessing**:
    - The two datasets are merged based on the `title` column.
-   - Missing values are handled by dropping rows with null values.
-   - Columns like `genres`, `keywords`, `cast`, and `crew` are processed to extract relevant information (e.g., genre names, top 3 actors, director).
-   - The `overview`, `genres`, `keywords`, `cast`, and `crew` columns are concatenated to create a new column, `tags`, which serves as the primary input for generating recommendations.
+   - Missing values are dropped to ensure clean data.
+   - The `genres`, `keywords`, `cast`, and `crew` columns are parsed to extract relevant information such as genre names, top 3 actors, and the director.
+   - The `overview`, `genres`, `keywords`, `cast`, and `crew` are combined into a single column `tags`, which represents the core content of the movie.
 
-3. **Text Processing**:
-   - The `tags` column is processed by converting text to lowercase, removing spaces, and applying stemming (using Porter Stemmer) to reduce words to their root form.
+3. **Feature Extraction**:
+   - A **pre-trained Sentence-BERT model** (`all-MiniLM-L6-v2`) from the `sentence-transformers` library is used to convert the `tags` text into **dense semantic vectors**.
+   - These vectors capture the meaning and context of the movie content beyond simple keyword overlap.
 
-4. **Feature Extraction**:
-   - **CountVectorizer** is used to transform the `tags` column into a vectorized format, representing the movies in a high-dimensional feature space.
+4. **Similarity Calculation**:
+   - **Cosine Similarity** is applied to the Sentence-BERT embeddings to compute semantic similarity between movies.
+   - This allows the system to recommend movies based on how contextually similar they are, rather than just shared words.
 
-5. **Similarity Calculation**:
-   - **Cosine Similarity** is used to calculate the similarity between movies based on their vectorized representations (tags).
+5. **Movie Recommendation**:
+   - A function `recommend(movie_name)` returns the top 5 movies that are most similar to the input title based on the computed embeddings.
+   - Recommendations are more meaningful and nuanced thanks to contextual embeddings.
 
-6. **Movie Recommendation**:
-   - A function is implemented to recommend movies similar to a given movie title, based on the calculated cosine similarity.
+6. **Saving the Model**:
+   - The preprocessed movie data and similarity matrix are saved using `pickle`, allowing the system to be reused without reprocessing the entire dataset.
 
-7. **Saving the Model**:
-   - The preprocessed data and similarity matrix are saved as pickle files for easy loading and reuse.
-
-## Requirements
-
-To run this project, you'll need the following libraries:
-
-- numpy
-- pandas
-- matplotlib
-- nltk
-- scikit-learn
-- ast
-- pickle
-
-You can install the required libraries using:
-
-```
-pip install numpy pandas matplotlib nltk scikit-learn
-```
-
-## How to Use
-
-1. Download the dataset from Kaggle and place it in the `dataset/` directory.
-2. Run the Python script to preprocess the data, create the movie similarity matrix, and save the necessary files.
-3. Use the `recommender(movie_name)` function to get movie recommendations. Simply pass the movie title as a string to receive the top 5 similar movies.(Make sure to use the correct title, as the function is case-sensitive)
-
-Example:
-
-```python
-recommender('The Avengers')
-```
-
-## Conclusion
-
-The Movie Recommender System successfully uses content-based filtering to recommend similar movies based on their metadata. By using techniques like **Cosine Similarity** and **CountVectorizer**, the system provides effective recommendations that can help users discover new movies they may enjoy.
